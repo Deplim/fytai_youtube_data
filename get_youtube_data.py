@@ -42,7 +42,7 @@ def get_video_list(target):
     video_list=[]
 
     request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&part=snippet&playlistId="+target+"&maxResults=50"
-    #print(request_url)
+    print(request_url)
     comments_data = requests.get(request_url)
     jsonized_data = comments_data.json()
     for i in jsonized_data["items"]:
@@ -146,19 +146,21 @@ def get_video_info_list(target_list):
 if __name__ == '__main__':
     #print(get_hashed("1분과학", datetime.strptime("2016. 3. 20.", '%Y. %m. %d.')))
 
-    playlist=get_playlist_form_txt("playlist1.txt")
+    playlist=get_playlist_form_txt("playlist3.txt")
     print("playlist length : "+str(len(playlist)), "\n")
 
-    for i in playlist[:5]:
+    error_list=[]
+
+    for i in playlist:
         channel_hash=get_hashed(i["name"], datetime.strptime(i["regist"], '%Y. %m. %d.'))
 
         video_list=get_video_list(i["playlist_id"])
         print("video list length : "+str(len(video_list)))
 
-        video_info_list=get_video_info_list(video_list[:3])
+        video_info_list=get_video_info_list(video_list)
         print("get video info list : complet\n")
 
-        comment_list = get_comment_list(video_list[:3])
+        comment_list = get_comment_list(video_list)
         print("comment count for video list : ")
         print([len(k) for k in comment_list], "\n")
 
@@ -170,4 +172,8 @@ if __name__ == '__main__':
             print("mongo db insert: video info list >> success !!")
 
         print("\n\n-------------------------\n\n")
+
+    print("error:")
+    print(error_list)
+
 
