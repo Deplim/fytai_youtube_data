@@ -38,10 +38,10 @@ def get_playlist_form_txt(target):
     return channel_list
 
 
-def get_video_list(target):
+def get_video_list(target, key):
     video_list=[]
 
-    request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&part=snippet&playlistId="+target+"&maxResults=50"
+    request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key="+key+"&part=snippet&playlistId="+target+"&maxResults=50"
     print(request_url)
     comments_data = requests.get(request_url)
     jsonized_data = comments_data.json()
@@ -51,7 +51,7 @@ def get_video_list(target):
     if "nextPageToken" in jsonized_data:
         nextPageToken = jsonized_data["nextPageToken"]
 
-        request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&part=snippet&playlistId="+target+"&maxResults=50&pageToken="+nextPageToken
+        request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key="+key+"&part=snippet&playlistId="+target+"&maxResults=50&pageToken="+nextPageToken
         #print(request_url)
         comments_data = requests.get(request_url)
         jsonized_data = comments_data.json()
@@ -60,7 +60,7 @@ def get_video_list(target):
     return video_list
 
 
-def get_comment_list(target_list):
+def get_comment_list(target_list, key):
     comment_list=[]
     total = tqdm(total=len(target_list))
 
@@ -68,7 +68,7 @@ def get_comment_list(target_list):
         #print("i : ", i)
         temp_list=[]
 
-        request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&textFormat=plainText&part=snippet,replies&order=relevance&videoId="+v+"&maxResults=100"
+        request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId="+v+"&maxResults=100"
         #print(request_url)
         comments_data = requests.get(request_url)
         jsonized_data = comments_data.json()
@@ -90,7 +90,7 @@ def get_comment_list(target_list):
         while "nextPageToken" in jsonized_data:
             nextPageToken=jsonized_data["nextPageToken"]
 
-            request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&textFormat=plainText&part=snippet,replies&order=relevance&videoId=" + v + "&maxResults=100&pageToken="+nextPageToken
+            request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId=" + v + "&maxResults=100&pageToken="+nextPageToken
             #print(request_url)
             comments_data = requests.get(request_url)
             jsonized_data = comments_data.json()
@@ -115,14 +115,14 @@ def get_comment_list(target_list):
     return comment_list
 
 
-def get_video_info_list(target_list):
+def get_video_info_list(target_list, key):
     info_list = []
 
     for i, v in enumerate(target_list):
         #print("i : ", i)
         temp = {}
 
-        request_url = "https://www.googleapis.com/youtube/v3/videos?key=AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0&part=snippet,statistics&id=" + v
+        request_url = "https://www.googleapis.com/youtube/v3/videos?key="+key+"&part=snippet,statistics&id=" + v
         #print(request_url)
         comments_data = requests.get(request_url)
         jsonized_data = comments_data.json()
@@ -150,17 +150,18 @@ if __name__ == '__main__':
     print("playlist length : "+str(len(playlist)), "\n")
 
     error_list=[]
+    key="AIzaSyBs-ft82koBxP1FyPvVbjPW6Z74gICSHS0"
 
     for i in playlist:
         channel_hash=get_hashed(i["name"], datetime.strptime(i["regist"], '%Y. %m. %d.'))
 
-        video_list=get_video_list(i["playlist_id"])
+        video_list=get_video_list(i["playlist_id"], key)
         print("video list length : "+str(len(video_list)))
 
-        video_info_list=get_video_info_list(video_list)
+        video_info_list=get_video_info_list(video_list, key)
         print("get video info list : complet\n")
 
-        comment_list = get_comment_list(video_list)
+        comment_list = get_comment_list(video_list, key)
         print("comment count for video list : ")
         print([len(k) for k in comment_list], "\n")
 
