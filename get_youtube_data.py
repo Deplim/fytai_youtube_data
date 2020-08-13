@@ -7,7 +7,7 @@ from tqdm import tqdm
 
 def get_hashed(title, date):
    t = title + datetime.strftime(date, "%Y-%m-%d")
-   print(t, "\n")
+   print(t, end=" : ")
    return hashlib.md5(t.encode('utf-8')).hexdigest()
 
 def storage_video_info(storage):
@@ -42,7 +42,7 @@ def get_video_list(target, key):
     video_list=[]
 
     request_url = "https://www.googleapis.com/youtube/v3/playlistItems?key="+key+"&part=snippet&playlistId="+target+"&maxResults=50"
-    #print(request_url)
+    print(request_url)
     comments_data = requests.get(request_url)
     jsonized_data = comments_data.json()
     for i in jsonized_data["items"]:
@@ -66,9 +66,11 @@ def get_comment_list(target_list, key):
 
     for i, v in enumerate(target_list):
         #print("i : ", i)
-        temp_list=[]
-        request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId="+v+"&maxResults=100"
+        current_url=""
+
         try:
+            temp_list=[]
+            current_url=request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId="+v+"&maxResults=100"
             #print(request_url)
             comments_data = requests.get(request_url)
             jsonized_data = comments_data.json()
@@ -90,7 +92,7 @@ def get_comment_list(target_list, key):
             while "nextPageToken" in jsonized_data:
                 nextPageToken=jsonized_data["nextPageToken"]
 
-                request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId=" + v + "&maxResults=100&pageToken="+nextPageToken
+                current_url=request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId=" + v + "&maxResults=100&pageToken="+nextPageToken
                 #print(request_url)
                 comments_data = requests.get(request_url)
                 jsonized_data = comments_data.json()
@@ -114,7 +116,7 @@ def get_comment_list(target_list, key):
             total.update(1)
         except Exception as e:
             print("get_comment_error:",e)
-            print(request_url)
+            print(current_url)
 
             comment_list.append([])
             total.update(1)
@@ -126,10 +128,11 @@ def get_video_info_list(target_list, key):
 
     for i, v in enumerate(target_list):
         #print("i : ", i)
-        temp = {}
-        request_url = "https://www.googleapis.com/youtube/v3/videos?key="+key+"&part=snippet,statistics&id=" + v
+        current_url=""
 
         try:
+            temp = {}
+            current_url=request_url = "https://www.googleapis.com/youtube/v3/videos?key=" + key + "&part=snippet,statistics&id=" + v
             #print(request_url)
             comments_data = requests.get(request_url)
             jsonized_data = comments_data.json()
@@ -149,7 +152,7 @@ def get_video_info_list(target_list, key):
             #print("\n-----------------------------------\n\n\n")
         except Exception as e:
             print("get_video_error : ",e)
-            print(request_url)
+            print(current_url)
 
             temp["channel"] = None
             temp["title"]=0
@@ -166,34 +169,45 @@ if __name__ == '__main__':
     print("playlist length : "+str(len(playlist)), "\n")
 
     error_list=[]
-    key="AIzaSyDkKE6gjkpi8DiMa5ELStcQhNE0nLWIGnQ"
+    key="AIzaSyBlFCIyih5ru1iaY6vzIJgdLgBpIjHIw64"
 
     print("start !!! \n===============================\n===============================\n\n")
 
     for i in playlist:
-        channel_hash=get_hashed(i["name"], datetime.strptime(i["regist"], '%Y. %m. %d.'))
+        try:
+            channel_hash=get_hashed(i["name"], datetime.strptime(i["regist"], '%Y. %m. %d.'))
+            print(channel_hash, "\n")
 
-        print("get video list >>> ")
-        video_list=get_video_list(i["playlist_id"], key)
-        print("video list length : "+str(len(video_list)), "\n")
+            print("get video list >>> ")
+            video_list=get_video_list(i["playlist_id"], key)
+            print("video list length : "+str(len(video_list)), "\n")
 
-        print("get info list >>> ")
-        video_info_list=get_video_info_list(video_list, key)
-        print("complet\n")
+            print("get info list >>> ")
+            video_info_list=get_video_info_list(video_list, key)
+            print("title for video list : ")
+            check1=[k["title"] for k in video_info_list]
+            print(check1, "\n")
 
-        print("get comment list >>> ")
-        comment_list = get_comment_list(video_list, key)
-        print("comment count for video list : ")
-        print([len(k) for k in comment_list], "\n")
+            print("get comment list >>> ")
+            comment_list = get_comment_list(video_list, key)
+            print("comment count for video list : ")
+            check2=[len(k) for k in comment_list]
+            print(check2, "\n")
 
-        for j,v in enumerate(video_info_list):
-            video_info_list[j]["comments"]=comment_list[j]
-            video_info_list[j]["channel"]=channel_hash
+            if check1.count(0)>5 or check2.count([])>5:
+                t=input("확인 필요")
 
-        if storage_video_info(video_info_list):
-            print("mongo db insert: video info list >> success !!")
+            for j,v in enumerate(video_info_list):
+                video_info_list[j]["comments"]=comment_list[j]
+                video_info_list[j]["channel"]=channel_hash
 
-        print("\n\n-------------------------\n\n")
+            if storage_video_info(video_info_list):
+                print("mongo db insert: video info list >> success !!")
+
+            print("\n\n-------------------------\n\n")
+        except Exception as e:
+            print("channel error : ", e)
+            error_list.append(i)
 
     print("error:")
     print(error_list)
