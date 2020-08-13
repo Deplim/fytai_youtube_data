@@ -67,7 +67,7 @@ def get_comment_list(target_list, key):
     for i, v in enumerate(target_list):
         #print("i : ", i)
         current_url=""
-
+        message="0"
         try:
             temp_list=[]
             current_url=request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId="+v+"&maxResults=100"
@@ -89,10 +89,13 @@ def get_comment_list(target_list, key):
                         temp["replies"].append(rp_temp)
                 temp_list.append(temp)
 
+            message="1"
+
             while "nextPageToken" in jsonized_data:
                 nextPageToken=jsonized_data["nextPageToken"]
 
                 current_url=request_url = "https://www.googleapis.com/youtube/v3/commentThreads?key="+key+"&textFormat=plainText&part=snippet,replies&order=relevance&videoId=" + v + "&maxResults=100&pageToken="+nextPageToken
+                message = "2"
                 #print(request_url)
                 comments_data = requests.get(request_url)
                 jsonized_data = comments_data.json()
@@ -110,6 +113,7 @@ def get_comment_list(target_list, key):
                             rp_temp["like"] = m["snippet"]["likeCount"]
                             temp["replies"].append(rp_temp)
                     temp_list.append(temp)
+                message = "3"
 
             comment_list.append(temp_list)
             #print("\n-----------------------------------\n\n\n")
@@ -117,6 +121,7 @@ def get_comment_list(target_list, key):
         except Exception as e:
             print("get_comment_error:",e)
             print(current_url)
+            print(message)
 
             comment_list.append([])
             total.update(1)
