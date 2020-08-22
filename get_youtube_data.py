@@ -174,7 +174,7 @@ if __name__ == '__main__':
     print("playlist length : "+str(len(playlist)), "\n")
 
     error_list=[]
-    key="AIzaSyBlFCIyih5ru1iaY6vzIJgdLgBpIjHIw64"
+    key="AIzaSyDiK3SjSnIIjv5JJ1HeLzb4PsMOcA2-k-M"
 
     print("start !!! \n===============================\n===============================\n\n")
 
@@ -199,7 +199,7 @@ if __name__ == '__main__':
             check2=[len(k) for k in comment_list]
             print(check2, "\n")
 
-            if check1.count(0)>5 or check2.count([])>5:
+            if check1.count(0)>5 or check2.count(0)>5:
                 t=input("확인 필요")
 
             for j,v in enumerate(video_info_list):
